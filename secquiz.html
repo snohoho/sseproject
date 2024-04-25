@@ -1,0 +1,409 @@
+<!--Jesus De La Rosa, Ethan Davis, Brian Potter, Sebastian Vargas-->
+<!--4/14/2024-->
+<!--Software Security Project-->
+
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Software Security Quiz</title>
+
+        <script src="objects.js"></script>
+        <script src="jquery-3.7.1.js"></script>
+
+		<script> 
+			class main {
+				constructor() {
+                    jQuery.ajaxSetup({async:false});
+                    
+                    this.questionBase = [];
+                    this.questionsFile = this.getQA();
+                    
+                    this.qOrder = [];
+                    this.asToDisplay = [];
+                    this.currentQ = 0;
+                    this.showingQ = false;
+
+                    this.qReviewOrder = [];
+					this.currentRevQ = 0;
+
+                    this.initializeQABase();
+                    this.initializeTest();
+                    this.displayQA("allQs");
+
+                    this.game = new Game();
+                    this.game.renderAll();
+                    this.monsterID = 0;
+				}
+
+                getQA() {
+                    var text;
+                    jQuery.ajax({
+                        url: './secquestions.txt',
+                        success: function(result) {
+                            text = result;
+                        },
+                        async:false
+                    });
+
+                    return text;
+                }
+
+                initializeQABase() {
+                    let textByLine = this.questionsFile.split("\n")
+                    let id = 0;
+                    if(typeof this.game == Game) {
+                        this.game = delete Game();
+                    }
+                    this.game = new Game();
+                    this.game.renderAll();
+                    for(let i=0; i<textByLine.length; i+=5) {
+                        let q = textByLine[i];
+                        let cA = textByLine[i+1];
+                        let fA = [textByLine[i+2], textByLine[i+3], textByLine[i+4]];
+                        this.questionBase[id] = new Question(id,q,cA,fA)
+                        id++;
+                    }
+                }
+
+                initializeTest() {
+                    this.qOrder = [];
+                    while(this.questionBase.length > 0) {
+                        let randQID = Math.floor(Math.random() * this.questionBase.length); //grab random question
+                        this.qOrder.push(this.questionBase[randQID]); //push it into question order
+                        this.questionBase.splice(randQID,1); //remove question to stop it from being displayed again
+                    }
+                }
+
+                displayQA(toDisp) {
+                    //showing all questions
+                    if(toDisp == "allQs") {
+                        this.initializeQABase();
+                        for(let i=0; i<this.questionBase.length; i++) {
+                            document.getElementById("allQs").innerHTML += "<h2>" + this.questionBase[i].questionText + "</h2>" +
+                                                                          "<h3>" + this.questionBase[i].answers[0] + "</h3><br>";
+                        }
+                        return;
+                    }
+
+                    //for TEST MODE
+                    this.showingQ = true;
+                    document.getElementById("questionSect").style.display = "block";
+                    document.getElementById("answerSect").style.display = "block";
+                    document.getElementById("testQuestion").innerHTML = this.qOrder[this.currentQ].questionText;
+                    document.getElementById("checkAnswer").innerHTML = "Choose wisely!";
+                    for(let i=0; i<4; i++) {
+                        document.getElementById("radioAns" + i).checked = false;
+                    }
+                        
+                    let filledPos = [0,0,0,0];
+                    this.asToDisplay = structuredClone(this.qOrder[this.currentQ].answers); //clone answers to readd once spliced                
+                    while(true) {
+                        //random answer
+                        let randA = Math.floor(Math.random() * this.qOrder[this.currentQ].answers.length);
+                        //random position
+                        let randPos = Math.floor(Math.random() * 4);
+                        //if pos unfilled,
+                        if(filledPos[randPos] == 0) {
+                            filledPos[randPos] = 1;
+                            
+                            document.getElementById("testAnswer" + randPos).innerHTML = this.qOrder[this.currentQ].answers[randA];
+                            this.qOrder[this.currentQ].answers.splice(randA,1);
+
+                            continue;
+                        }
+                        //all positions filled, break loop
+                        else if (filledPos[0] != 0
+                                && filledPos[1] != 0
+                                && filledPos[2] != 0
+                                && filledPos[3] != 0) {
+                            break;
+                        }
+                    }
+                    this.qOrder[this.currentQ].answers = this.asToDisplay; //readd answers
+                }
+				
+				displayReviewQA(toDisp) {
+					//next button clicked
+                    if(toDisp == "next") {
+                        this.currentRevQ++;
+                        //if q is final question, wrap back to first
+                        if(this.currentRevQ > this.qReviewOrder.length-1) {
+                            this.currentRevQ = 0;
+                        }
+                    }
+                    //else prev button clicked
+                    else {
+                        this.currentRevQ--;
+                        //if q is first question, wrap back to last
+                        if(this.currentRevQ <= 0) {
+                            this.currentRevQ = this.qReviewOrder.length-1;
+                        }
+                    }
+
+					if(this.currentRevQ != -1) {
+						document.getElementById("reviewQuestion").innerHTML = this.qReviewOrder[this.currentRevQ].questionText;
+						document.getElementById("reviewAnswer").innerHTML = this.qReviewOrder[this.currentRevQ].correctAnswer;
+					}
+					else {
+						document.getElementById("reviewQuestion").innerHTML = "Nothing to review.";
+						document.getElementById("reviewAnswer").innerHTML = "Maybe if you mark a question or get it wrong, something will show up?";
+					}
+				}
+
+                checkAnswer() {
+                    let ensureCheck = false;
+                    console.log("CHECK ANSWER: " + this.monsterID);
+                    console.log("CHECK ANSWER: " + this.game.monster[this.monsterID])
+                    for(let i=0; i<4; i++) {
+                        if(document.getElementById("radioAns" + i).checked) {
+                            ensureCheck = true;
+                            if(document.getElementById("testAnswer" + i).innerHTML.trim() == this.qOrder[this.currentQ].correctAnswer.trim()) {
+                                console.log("answer correct");
+                                document.getElementById("checkAnswer").innerHTML = "CORRECT!";
+                                this.qOrder[this.currentQ].answered = true;
+                                this.game.hero.score++;
+                                console.log(this.game.monster[this.monsterID])
+                                this.game.monster[this.monsterID].hp--;
+                            }
+                            else {
+                                console.log("answer wrong. mark as review");
+                                document.getElementById("checkAnswer").innerHTML = "WRONG!";
+                                this.qReviewOrder.push(this.qOrder[this.currentQ]);
+                                this.qOrder[this.currentQ].answered = true;
+                                this.game.hero.hp--;
+                            }
+                        }
+                        document.getElementById("radioAns" + i).checked = false;
+                    }
+                    this.qOrder.splice(this.currentQ,1);
+
+                    let answeredCount = 0;
+                    for(let i=0; i<this.qOrder.length; i++) {
+                        if(this.qOrder[i].answered == true) { 
+                            answeredCount += 1;
+                        }
+                        else { 
+                            break; 
+                        }
+                    }
+
+                    if(answeredCount == this.qOrder.length || this.game.hero.hp == 0) {
+                        document.getElementById("testQuestion").innerHTML = "You slayed them all!"
+                        document.getElementById("hp").style.display = "none";
+                        if(this.game.hero.score < 10) {
+                            document.getElementById("testQuestion").innerHTML = "You won, but there are still monsters about...";
+                        }
+                        document.getElementById("scoreReveal").innerHTML = "Your score is: " + this.game.hero.score + 
+                                                                            "<br>You can test again by clicking the testing button, or review what you got wrong!";
+                        document.getElementById("answerSect").style.display = "none";
+                        document.getElementById("questionSect").style.display = "block";
+                        document.getElementById("testQuestion").style.display = "block";
+                        document.getElementById("scoreReveal").style.display = "block";
+                        
+                    }
+                    else if(ensureCheck) {
+                        this.displayQA("next");
+                        this.showingQ = false;
+                        document.getElementById("questionSect").style.display = "none";
+                        document.getElementById("answerSect").style.display = "none";
+                        document.getElementById("hp").innerHTML = "HP: " + this.game.hero.hp;
+                    }
+                    
+                    if(this.game.hero.hp == 0) {       
+                        this.game.updateAll(); 
+                    }
+                    if(this.game.monster[this.monsterID].hp == 0) {
+                        this.game.monster[this.monsterID].render();
+                    }
+                }
+
+                switchMode(mode) {
+                    //if currently in test mode
+                    if(mode == "test") {
+                        console.log("switch to review mode");
+                        document.getElementById("testMode").style.display = "none";
+                        document.getElementById("allQsMode").style.display = "none";  
+                        document.getElementById("reviewMode").style.display = "block";  
+                        document.getElementById("scoreReveal").style.display = "none";
+                        document.getElementById("hp").style.display = "none";
+                        document.getElementById("answerSect").style.display = "block";
+                        this.currentRevQ = 0;
+						this.displayReviewQA();
+                    }
+                    //otherwise in review mode
+                    else if(mode == "review") {
+                        console.log("switch to test mode");
+                        document.getElementById("reviewMode").style.display = "none";
+                        document.getElementById("allQsMode").style.display = "none";  
+                        document.getElementById("testMode").style.display = "block";
+                        document.getElementById("questionSect").style.display = "none";
+                        document.getElementById("answerSect").style.display = "none";
+                        document.getElementById("hp").style.display = "block";
+                        this.game.hero.hp = 3;
+                        this.currentRevQ = 0;
+                        this.qReviewOrder = [];
+                        this.initializeQABase();
+                        this.initializeTest();
+                        this.showingQ = false;
+                    }
+					//otherwise questions mode
+					else {
+						console.log("switch to questions mode");
+                        document.getElementById("allQs").innerHTML = "";
+                        document.getElementById("reviewMode").style.display = "none";
+                        document.getElementById("testMode").style.display = "none";
+                        document.getElementById("hp").style.display = "none";
+                        document.getElementById("allQsMode").style.display = "block";
+    
+                        this.displayQA("allQs");
+					}
+                }
+
+                handleClick(id) {
+                    switch(id) {
+                        case "switchTestMode":
+                            this.switchMode("test");
+                            break;
+                        case "switchReviewMode":
+                            this.switchMode("review");
+                            break;
+						case "switchQuestionMode":
+							this.switchMode("question");
+                        case "prevAnsQuestion":
+                            this.displayQA("prev");
+							break;
+						case "prevRevQuestion":
+							this.displayReviewQA("prev");
+                            break;
+                        case "nextAnsQuestion":
+                            this.displayQA("next");
+							break;
+						case "nextRevQuestion":
+							this.displayReviewQA("next");
+                            break;
+                        case "submitAnswer":
+                            this.checkAnswer();
+                            break;
+                        default:
+                            console.log("def case");
+                            break;
+                    }
+				} 
+
+                static keyDown(event) {
+					let key = String.fromCharCode(event.keyCode);
+                    console.log(key);
+					if((key == "W" || key == "A" || key == "S" || key == "D") && m.showingQ != true) {
+						m.game.updateAll(event);
+					}
+				}
+            }  
+            
+            function onClick(id) {
+                m.handleClick(id);
+            }
+		</script>
+
+        <style>
+            #testMode { 
+                display: none;
+            }
+            #reviewMode { 
+                display: none;
+            }
+			#questionsMode {
+				display: block;
+			}
+
+            #switchTestMode { 
+                display: block;
+            }
+            #switchReviewMode { 
+                display: block;
+            }
+			#switchQuestionMode {
+				display: block;
+			}
+			
+			.column {
+			  float: left;
+			  width: 50%;
+			}
+
+			/* Clear floats after the columns */
+			.row:after {
+			  content: "";
+			  display: table;
+			  clear: both;
+			}
+        </style>
+	</head>
+	
+	<body>	
+        <section id="testMode">
+            <h1>Test your knowledge!</h1>
+
+            <div id="canvArea">
+                <canvas width="1024" height="640" id="canvas">
+                    alt
+                </canvas>
+            </div>
+            <h1 id="hp">HP: 3</h1>
+            <div id="questionSect">
+                <h2 id="testQuestion">Question</h2>
+                <h3 id="scoreReveal"></h3>
+            </div>
+            <div id="answerSect">
+                <input type="radio" id="radioAns0" name="testAnswer"/>
+                <label id="testAnswer0">Answer 1</label><br>
+                <input type="radio" id="radioAns1" name="testAnswer"/>
+                <label id="testAnswer1">Answer 2</label><br>
+                <input type="radio" id="radioAns2" name="testAnswer"/>
+                <label id="testAnswer2">Answer 3</label><br>
+                <input type="radio" id="radioAns3" name="testAnswer"/>
+                <label id="testAnswer3">Answer 4</label><br>
+
+                <h3 id="checkAnswer">Answer wisely!</h3>
+
+                <button id="submitAnswer" onclick="onClick(this.id);">Submit Answer</button>
+            </div>
+            <br>
+            <br>
+            <button id="switchTestMode" onclick="onClick(this.id);">Switch to Review</button>
+			<button id="switchQuestionMode" onclick="onClick(this.id);">Switch to Questions</button>
+        </section>
+
+        <section id="reviewMode">
+            <h1>Review questions, or see what you missed.</h1>
+
+            <div id="questionSect">
+                <h2 id="reviewQuestion">Nothing to review.</h2>
+            </div>
+            <div id="answerSect">
+                <h3 id="reviewAnswer">Maybe if you mark a question or get it wrong, something will show up?</h3>
+            </div>
+
+            <button id="prevRevQuestion" onclick="onClick(this.id);">Previous Question</button>
+            <button id="nextRevQuestion" onclick="onClick(this.id);">Next Question</button>
+            <br>
+            <br>
+            <button id="switchReviewMode" onclick="onClick(this.id);">Switch to Testing</button>
+			<button id="switchQuestionMode" onclick="onClick(this.id);">Switch to Questions</button>
+        </section>
+		
+		<section id="allQsMode">
+			<h1>Look at all available questions and their answers.</h1>
+			<div id="allQs"></div>
+			<button id="switchReviewMode" onclick="onClick(this.id);">Switch to Testing</button>
+			<button id="switchTestMode" onclick="onClick(this.id);">Switch to Review</button>
+		</section>
+
+		<script>
+            var canvas = document.getElementById("canvas");
+			var ctx = canvas.getContext("2d");	
+
+			var m = new main();
+            window.onkeydown = main.keyDown;
+		</script>
+	</body>
+</html>

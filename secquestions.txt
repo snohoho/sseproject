@@ -1,0 +1,50 @@
+﻿Pin Security: What is a good way to pick a secure PIN or password for your mobile device?
+Use a number only you know
+Use your birthday
+Use your house address number
+Use the last four digits of your social security number
+Phishing: Here’s a hypothetical scenario: You receive a call on your phone from someone claiming to be from your bank, and the number matches what’s on the back of your card. They tell you that your account is going to be locked if you do not pay a fee within 24 hours, and the only way to stop it is to pay them then and there. What should you do?
+Hang up and do research before you pay them. Make sure they’re who they say they are.
+The number on the phone matches what to call on your card, so it must be them. Pay.
+I don’t want my account locked! I need to pay right now!
+They want cryptocurrency? I need to go out and pay them!
+Physical: Oh no! Someone stole your phone when you left it on the table at a restaurant. What should you do?
+Use a computer or other device on the same Apple/Google or equivalent account to find the location and/or lock the phone remotely.
+Call the police!
+I guess I need to get a new phone…
+Question people at the restaurant, they might still be there!
+Sim Hijacking: What is a reason that someone could perform a SIM hijack on you, where they take your phone number?
+They took your personal information from somewhere
+They were near your phone and took your phone number wirelessly
+That random phone call you took must have hacked you
+That darn candy crush game must be a virus
+Malicious Apps: What is a way to know the apps that you download are secure?
+Always download from an official app store and check the reviews
+Any .apk with a good looking site is likely fine
+Nobody would ever make an evil app, that’s mean
+Any app on the app store must be safe
+Unsecure Connection: What is the best way to protect yourself when using an open Wi-Fi network, in the event that you have to?
+Use a Virtual Private Network (VPN) to secure your connection
+It’s just my usual coffee shop, nothing to worry about
+Share the connection from your phone to your laptop for two layers of security
+Ask the workers if the Wi-Fi is safe
+Spyware: What kind of symptoms could be from spyware on your phone?
+High power and data usage at all times
+Your background changed
+Some photos are missing, they must have stolen them
+My phone is acting slow
+OS Vulnerability: What is a good way to keep your phone secure?
+Make sure your phone is up to date with the latest software updates
+A strong case is a good idea
+Put your phone in rice every night
+Keep your phone clean by wiping it often
+2FA: What is usually considered the best way to protect your accounts online?
+Two Factor Authentication using phone or email
+A very secure password
+Changing your password often
+Nobody would ever hack me. I don’t need to be that secure!
+Text Security: What is a safe practice when texting someone at a number you don’t know?
+Contact them somewhere else to make sure it is them
+They probably just changed numbers, it’s fine
+Click on any links they sent you
+It’s support for your bank or a company, you probably wouldn’t have that number
